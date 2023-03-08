@@ -1,5 +1,11 @@
 #!/bin/sh
 source .env
+if [ $# -eq 0 ];then
+   echo "Usage: ./new.sh vmname"
+   exit
+else
+   vmname=$1
+fi
 if [ ! -f "jammy-server-cloudimg-amd64.ova" ];then
    curl -OL https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.ova
 fi
@@ -11,16 +17,12 @@ j=json.loads(f.read())
 for x in j['PropertyMapping']:
     if x['Key']=='public-keys':
             x['Value']="$SSH_KEY"
+    if x['Key']=='hostname':
+            x['Value']="$vmname"
 f=open('spec.json','w')
 f.write(json.dumps(j))
 f.close()
 EOF
-if [ $# -eq 0 ];then
-   echo "Usage: ./new.sh vmname"
-   exit
-else
-   vmname=$1
-fi
 govc import.ova -name=${vmname} --options=spec.json jammy-server-cloudimg-amd64.ova
 govc vm.network.change -vm=${vmname} ethernet-0
 govc vm.change -vm ${vmname} -m 8192 -c 2
