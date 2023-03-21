@@ -1,10 +1,9 @@
 #!/bin/sh
 source .env
-if [ $# -eq 0 ];then
-   echo "Usage: ./new.sh vmname"
-   exit
-else
+if [ $# -gt 0 ];then
    vmname=$1
+else
+   vmname=new-vm-$(date +%y%m%d)-$RANDOM.cloud.kth.se
 fi
 if [ ! -f "jammy-server-cloudimg-amd64.ova" ];then
    curl -OL https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.ova
@@ -17,8 +16,6 @@ j=json.loads(f.read())
 for x in j['PropertyMapping']:
     if x['Key']=='public-keys':
             x['Value']="$SSH_KEY"
-    if x['Key']=='hostname':
-            x['Value']="$vmname"
 f=open('spec.json','w')
 f.write(json.dumps(j))
 f.close()
@@ -39,13 +36,17 @@ else
   echo $FREE
   RES=$(curl -s -X POST -H "apilabel:$KIDDOW_KEY" -H "apisecret:$KIDDOW_SECRET" -d "ipaddress=$FREE" -d "macaddress=$MAC" $KIDDOW_URL/api/v0/set_static_ip)
   echo $RES
+  newname=$(dig +short -x $FREE)
+  newname=${newname:0:${#newname}-1}
+  vmpath=$(govc vm.info $vmname | grep Path | awk '{print $2}')
+  govc object.rename ${vmpath} ${newname}
 fi
 TS=$(date +%s)
 TD=$((TS - 1678217460))
 TM=$(expr $TD % 300)
 TMD=$((300 - TM))
 sleep $TMD
-govc vm.power -on ${vmname}
-IP=$(govc vm.ip  ${vmname})
+govc vm.power -on ${newname}
+IP=$(govc vm.ip ${newname})
 echo $IP
 ssh ubuntu@$IP
