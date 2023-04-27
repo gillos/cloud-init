@@ -20,6 +20,7 @@ f=open('spec.json','w')
 f.write(json.dumps(j))
 f.close()
 EOF
+#govc library.deploy --options=spec.json /ova/jammy-server-cloudimg-amd64 ${vmname}
 govc import.ova -name=${vmname} --options=spec.json jammy-server-cloudimg-amd64.ova
 govc vm.network.change -vm=${vmname} ethernet-0
 govc vm.change -vm ${vmname} -m 8192 -c 2
