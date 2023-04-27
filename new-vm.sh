@@ -13,6 +13,7 @@ python3 <<EOF
 import json
 f=open('spec.json')       
 j=json.loads(f.read())
+j['DiskProvisioning']='thin'
 for x in j['PropertyMapping']:
     if x['Key']=='public-keys':
             x['Value']="$SSH_KEY"
