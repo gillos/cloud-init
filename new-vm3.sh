@@ -3,7 +3,9 @@ source .env
 if [ ! -f "jammy-server-cloudimg-amd64.ova" ];then
    curl -OL https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.ova
 fi
-for i in {19..21};do
+FROMN=19
+TON=21
+for i in {$FROMN..$TON};do
 govc import.spec jammy-server-cloudimg-amd64.ova > spec.json
 vmname="rancher-node0${i}.cloud.kth.se"
 python3 <<EOF
@@ -34,12 +36,12 @@ TD=$((TS - 1678217460))
 TM=$(expr $TD % 300)
 TMD=$((300 - TM))
 sleep $TMD
-for i in {19..21};do
+for i in {$FROMN..$TON};do
 vmname="rancher-node0${i}.cloud.kth.se"
 govc vm.power -on ${vmname}
 done
 sleep 60
-for i in {19..21};do
+for i in {$FROMN..$TON};do
 vmname="rancher-node0${i}.cloud.kth.se"
 govc vm.network.add  -vm=${vmname} -net v861
 done
